@@ -1,0 +1,302 @@
+================================================================================
+    GUÍA DE INSTALACIÓN - PROYECTO MIGRANTE LEGAL
+    Paso a paso para montar el proyecto en cualquier equipo
+================================================================================
+
+📋 PRERREQUISITOS
+================================================================================
+
+1. Instalar Docker Desktop
+   - Windows/Mac: https://www.docker.com/products/docker-desktop
+   - Linux: https://docs.docker.com/engine/install/
+   
+   Verificar instalación:
+   $ docker --version
+   $ docker compose version
+
+2. Instalar Node.js 22 LTS (opcional, solo para desarrollo local sin Docker)
+   - Descargar desde: https://nodejs.org/
+   
+   Verificar instalación:
+   $ node --version
+   $ npm --version
+
+3. Instalar Git (para clonar el proyecto)
+   - Descargar desde: https://git-scm.com/
+
+
+================================================================================
+🚀 PASO 1: OBTENER EL PROYECTO
+================================================================================
+
+Opción A - Si tienes Git:
+   $ git clone <url-del-repositorio>
+   $ cd migrantelegal
+
+Opción B - Si tienes el .zip:
+   1. Descomprimir el archivo migrantelegal.zip
+   2. Abrir terminal en la carpeta del proyecto
+
+
+================================================================================
+🔧 PASO 2: CONFIGURAR VARIABLES DE ENTORNO
+================================================================================
+
+1. Copiar el archivo de ejemplo:
+   
+   Linux/Mac:
+   $ cp .env.example .env
+   
+   Windows (CMD):
+   > copy .env.example .env
+   
+   Windows (PowerShell):
+   > Copy-Item .env.example .env
+
+2. Verificar que el archivo .env contenga:
+   DATABASE_URL="postgresql://migrantelegal:migrantelegal2026@localhost:5433/migrantelegal_db"
+   NODE_ENV="development"
+
+
+================================================================================
+🐳 PASO 3: LEVANTAR EL PROYECTO CON DOCKER
+================================================================================
+
+1. Asegúrate de estar en la carpeta del proyecto:
+   $ pwd  (Linux/Mac)
+   > cd   (Windows)
+   
+   Debe mostrar: /ruta/a/migrantelegal
+
+2. Levantar todos los contenedores:
+   $ docker compose up -d --build
+   
+   Este comando:
+   - Descarga las imágenes necesarias (primera vez)
+   - Construye la aplicación
+   - Levanta 3 contenedores: postgres, pgadmin, app
+   - Tarda 2-5 minutos la primera vez
+   
+   NOTA: Las imágenes del sitio web (logo, fotos de abogados, etc.) 
+         ya están incluidas en la carpeta public/images/ del proyecto
+
+3. Verificar que los contenedores estén corriendo:
+   $ docker compose ps
+   
+   Deberías ver:
+   ✓ migrantelegal-postgres   (Up, healthy)
+   ✓ migrantelegal-pgadmin    (Up)
+   ✓ migrantelegal-app        (Up)
+
+
+================================================================================
+🌐 PASO 4: ACCEDER A LA APLICACIÓN
+================================================================================
+
+1. Aplicación Next.js:
+   URL: http://localhost:3001
+   
+2. pgAdmin (administrador de base de datos):
+   URL: http://localhost:5051
+   Email: admin@migrantelegal.cl
+   Password: admin2026
+
+3. PostgreSQL (solo acceso por código):
+   Host: localhost
+   Puerto: 5433
+   Usuario: migrantelegal
+   Password: migrantelegal2026
+   Base de datos: migrantelegal_db
+
+
+================================================================================
+⚙️ PASO 5: CONFIGURAR LA BASE DE DATOS (PRIMERA VEZ)
+================================================================================
+
+1. Ejecutar migraciones de Prisma:
+   $ docker compose exec app npx prisma migrate dev --name init
+
+2. (Opcional) Generar el cliente de Prisma:
+   $ docker compose exec app npx prisma generate
+
+
+================================================================================
+💻 PASO 6: DESARROLLO LOCAL (OPCIONAL)
+================================================================================
+
+Si quieres trabajar con autocompletado en VS Code:
+
+1. Instalar dependencias localmente:
+   $ npm install
+
+2. Los estilos y cambios se actualizarán automáticamente gracias a
+   Fast Refresh de Docker.
+
+
+================================================================================
+📝 COMANDOS ÚTILES
+================================================================================
+
+Ver logs en tiempo real:
+$ docker compose logs -f app
+
+Reiniciar la aplicación:
+$ docker compose restart app
+
+Detener todos los contenedores:
+$ docker compose down
+
+Detener y eliminar volúmenes (¡cuidado, borra la base de datos!):
+$ docker compose down -v
+
+Reconstruir desde cero:
+$ docker compose down
+$ docker compose up -d --build
+
+Ver estado de contenedores:
+$ docker compose ps
+
+Ejecutar comandos dentro del contenedor:
+$ docker compose exec app sh
+$ docker compose exec app npm run dev
+$ docker compose exec app npx prisma studio
+
+Limpiar todo Docker (extremo):
+$ docker system prune -a
+$ docker volume prune
+
+
+================================================================================
+🔍 SOLUCIÓN DE PROBLEMAS
+================================================================================
+
+PROBLEMA: Error "port 3001 is already allocated"
+SOLUCIÓN: 
+   - Cambiar el puerto en docker-compose.yml (línea "3001:3001")
+   - O detener el servicio que usa el puerto 3001
+
+PROBLEMA: Error "Cannot connect to Docker daemon"
+SOLUCIÓN:
+   - Asegúrate de que Docker Desktop esté corriendo
+   - Reinicia Docker Desktop
+
+PROBLEMA: Error "Cannot find module"
+SOLUCIÓN:
+   $ docker compose down
+   $ docker compose up -d --build
+
+PROBLEMA: Los estilos no se aplican (Tailwind no funciona)
+SOLUCIÓN:
+   1. Verificar que existe postcss.config.js
+   2. Verificar que globals.css tenga @import "tailwindcss"
+   3. Reiniciar: docker compose restart app
+   4. Borrar caché del navegador (Ctrl+Shift+R)
+
+PROBLEMA: La página no se actualiza con cambios
+SOLUCIÓN:
+   1. Verificar logs: docker compose logs -f app
+   2. Debe mostrar: ✓ Compiled in XXXms
+   3. Si no, reiniciar: docker compose restart app
+
+PROBLEMA: Error al construir "npm ci failed"
+SOLUCIÓN:
+   1. Borrar node_modules y package-lock.json local
+   2. Ejecutar: npm install
+   3. Reconstruir: docker compose up -d --build
+
+
+================================================================================
+📂 ESTRUCTURA DEL PROYECTO
+================================================================================
+
+migrantelegal/
+├── docker-compose.yml       # Configuración de Docker
+├── Dockerfile              # Imagen de la aplicación
+├── package.json            # Dependencias de Node.js
+├── .env                    # Variables de entorno
+├── prisma/
+│   └── schema.prisma       # Schema de base de datos
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx      # Layout global
+│   │   ├── page.tsx        # Página principal
+│   │   └── globals.css     # Estilos globales
+│   ├── components/         # Componentes React
+│   │   ├── Navbar.tsx
+│   │   ├── Hero.tsx
+│   │   ├── Services.tsx
+│   │   ├── Lawyers.tsx
+│   │   └── Footer.tsx
+│   └── lib/               # Utilidades
+│       ├── prisma.ts
+│       ├── axios.ts
+│       └── validations.ts
+└── public/                # Archivos estáticos
+    └── images/
+
+
+================================================================================
+🎯 TECNOLOGÍAS UTILIZADAS
+================================================================================
+
+Frontend:
+- Next.js 15 (App Router)
+- React 19
+- TypeScript 5.7
+- Tailwind CSS 4.0
+- React Hook Form + Zod
+
+Backend:
+- Next.js API Routes
+- Server Actions
+- Node.js 22 LTS
+
+Base de Datos:
+- PostgreSQL 17
+- Prisma 6 (ORM)
+- pgAdmin 4
+
+DevOps:
+- Docker & Docker Compose
+- Fast Refresh para desarrollo
+
+
+================================================================================
+📞 SOPORTE
+================================================================================
+
+Si tienes problemas:
+1. Revisa la sección "SOLUCIÓN DE PROBLEMAS"
+2. Verifica los logs: docker compose logs -f app
+3. Asegúrate de tener Docker corriendo
+4. Verifica que los puertos 3001, 5433, 5051 estén libres
+
+
+================================================================================
+✅ CHECKLIST DE VERIFICACIÓN
+================================================================================
+
+[ ] Docker Desktop instalado y corriendo
+[ ] Proyecto descargado/clonado
+[ ] Archivo .env configurado
+[ ] docker compose up -d --build ejecutado exitosamente
+[ ] docker compose ps muestra 3 contenedores corriendo
+[ ] http://localhost:3001 muestra la aplicación
+[ ] pgAdmin accesible en http://localhost:5051
+[ ] Fast Refresh funciona (cambios se ven automáticamente)
+
+
+================================================================================
+🎉 ¡LISTO!
+================================================================================
+
+Tu proyecto Migrante Legal está corriendo en:
+👉 http://localhost:3001
+
+Para detener el proyecto:
+$ docker compose down
+
+Para volver a iniciar:
+$ docker compose up -d
+
+================================================================================

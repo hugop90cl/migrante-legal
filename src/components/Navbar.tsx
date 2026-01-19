@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Menu, X, Phone } from 'lucide-react';
+import { getImagePath } from '@/lib/utils';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -14,7 +15,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
             <img
-              src="/images/logoMigrantes.jpeg"
+              src={getImagePath('/images/logoMigrantes.jpeg')}
               alt="Migrante Legal Logo"
               className="h-16 w-auto transition-transform group-hover:scale-110"
             />

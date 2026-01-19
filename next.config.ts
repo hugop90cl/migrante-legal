@@ -1,5 +1,6 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
+  output: 'export',
   images: {
     remotePatterns: [
       {
@@ -7,8 +8,6 @@ const nextConfig = {
         hostname: 'flowbite.com',
       },
     ],
+    unoptimized: true,
   },
-  output: 'standalone', // Solo si vuelves a producción
 };
-
-module.exports = nextConfig;

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 import { ArrowRight } from 'lucide-react';
+import { getImagePath } from '@/lib/utils';
 
 export default function Hero() {
   return (
@@ -11,7 +12,7 @@ export default function Hero() {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('/images/hero-bg.png')",
+          backgroundImage: `url('${getImagePath('/images/hero-bg.png')}')`,
         }}
       >
         {/* Overlay oscuro */}

@@ -1,5 +1,7 @@
 'use client';
 
+import { getImagePath } from '@/lib/utils';
+
 const lawyers = [
   {
     id: 1,
@@ -7,7 +9,7 @@ const lawyers = [
     role: 'Abogada Migratoria',
     description:
       'Abogada con sólida experiencia en derecho migratorio y administrativo, especializada en resoluciones, recursos y acompañamiento jurídico a familias migrantes. Destaca por su enfoque cercano, ético y claro, ofreciendo orientación práctica y estrategias legales efectivas para regularizar situaciones migratorias en Chile.',
-    image: '/images/abogada_1.jpeg',
+    image: getImagePath('/images/abogada_1.jpeg'),
   },
   {
     id: 2,
@@ -15,7 +17,7 @@ const lawyers = [
     role: 'Abogado',
     description:
       'Abogado con sólida experiencia en derecho migratorio y administrativo, especializado en resoluciones, recursos y acompañamiento jurídico a familias migrantes.',
-    image: '/images/abogado_2.jpeg',
+    image: getImagePath('/images/abogado_2.jpeg'),
   },
   {
     id: 3,
@@ -23,7 +25,7 @@ const lawyers = [
     role: 'Abogada',
     description:
       'Abogada con sólida experiencia en derecho migratorio y administrativo, especializada en resoluciones, recursos y acompañamiento jurídico a familias migrantes.',
-    image: '/images/abogada_3.jpeg',
+    image: getImagePath('/images/abogada_3.jpeg'),
   },
 ];
 

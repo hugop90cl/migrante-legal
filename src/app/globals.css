@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @layer base {
   * {
@@ -8,7 +8,10 @@
   }
 
   body {
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family:
+      system-ui,
+      -apple-system,
+      sans-serif;
     background-color: #ffffff;
     color: #1f2937;
     padding-top: 64px;
@@ -23,18 +26,78 @@
     padding-left: 1rem;
     padding-right: 1rem;
   }
-  
+
   @media (min-width: 640px) {
     .container-custom {
       padding-left: 1.5rem;
       padding-right: 1.5rem;
     }
   }
-  
+
   @media (min-width: 1024px) {
     .container-custom {
       padding-left: 2rem;
       padding-right: 2rem;
     }
   }
+
+  @layer components {
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in-up {
+      animation: fadeInUp 0.8s ease-out forwards;
+    }
+
+    .animation-delay-100 {
+      animation-delay: 0.1s;
+    }
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-subtle {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.85;
+    }
+  }
+
+  .shine-effect::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transform: rotate(45deg);
+    animation: shine 3s infinite;
+  }
+
+  @keyframes shine {
+    0% {
+      transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    100% {
+      transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+  }
+}
+
+.lawyer-hover-shadow {
+  box-shadow: inset 0 0 20px rgba(37, 99, 235, 0.3);
 }

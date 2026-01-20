@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import React from 'react';
 import { ArrowRight, Banknote, Home, Users, FileText } from 'lucide-react';
+import { useState } from 'react';
+import ServiceModal from './ServiceModal';
 
 const services = [
   {
@@ -44,6 +46,8 @@ const services = [
 ];
 
 export default function Services() {
+  const [selectedService, setSelectedService] = useState(null);
+
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -60,9 +64,9 @@ export default function Services() {
           {services.map((service, index) => {
             const IconComponent = service.icon;
             return (
-              <Link
+              <div
                 key={service.id}
-                href="/contacto"
+                onClick={() => setSelectedService(service)}
                 style={{ animationDelay: `${index * 100}ms` }}
                 className="flex flex-col p-8 rounded-xl bg-gradient-to-br from-white to-gray-50 border border-gray-100 hover:border-gray-200 transition-all duration-300 hover:shadow-xl hover:scale-105 relative cursor-pointer group animate-fade-in-up"
               >
@@ -86,11 +90,14 @@ export default function Services() {
                   Agendar reunión
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>
       </div>
+      {selectedService && (
+        <ServiceModal service={selectedService} onClose={() => setSelectedService(null)} />
+      )}
     </section>
   );
 }

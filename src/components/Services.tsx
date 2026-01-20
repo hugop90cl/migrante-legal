@@ -1,11 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import React from 'react';
 import { ArrowRight, Banknote, Home, Users, FileText } from 'lucide-react';
 import { useState } from 'react';
 import ServiceModal from './ServiceModal';
-
 const services = [
   {
     id: 1,
@@ -46,7 +44,7 @@ const services = [
 ];
 
 export default function Services() {
-  const [selectedService, setSelectedService] = useState(null);
+  const [selectedService, setSelectedService] = useState<any | null>(null);
 
   return (
     <section className="py-20 bg-white">

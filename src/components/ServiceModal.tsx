@@ -1,13 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, CheckCircle, Mail, Phone, User, MessageSquare } from 'lucide-react';
+import { X, CheckCircle, Mail, Phone, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
 
 interface Service {
   id: number;
   title: string;
+  icon?: React.ComponentType;
+  description?: string;
+  buttonColor?: string;
+  color?: string;
 }
 
 interface Props {

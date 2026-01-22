@@ -9,7 +9,7 @@ const lawyers = [
     role: 'Abogada Migratoria',
     description:
       'Abogada con sólida experiencia en derecho migratorio y administrativo, especializada en resoluciones, recursos y acompañamiento jurídico a familias migrantes. Destaca por su enfoque cercano, ético y claro, ofreciendo orientación práctica y estrategias legales efectivas para regularizar situaciones migratorias en Chile.',
-    image: getImagePath('/images/abogada_1.jpeg'),
+    image: getImagePath('/images/abogado_1.jpeg'),
   },
   {
     id: 2,

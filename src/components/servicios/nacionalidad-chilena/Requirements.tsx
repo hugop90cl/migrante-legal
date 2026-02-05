@@ -67,7 +67,7 @@ export default function Requirements() {
                 <li>Familia en Chile</li>
                 <li>Actividades sociales, etc.</li>
               </ul>
-              <p className="text-gray-600 text-sm ml-2 mt-2 italic">(No es un requisito "duro", pero se evalúa)</p>
+              <p className="text-gray-600 text-sm ml-2 mt-2 italic">(No es un requisito &quot;duro&quot;, pero se evalúa)</p>
             </li>
 
             {/* Requisito 8 */}

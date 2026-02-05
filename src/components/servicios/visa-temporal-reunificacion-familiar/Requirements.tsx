@@ -64,7 +64,7 @@ export default function Requirements() {
                 mb-6
                 "
             >
-            2. Requisitos del familiar que está en Chile (el "requirente")
+            2. Requisitos del familiar que está en Chile (el &quot;requirente&quot;)
           </h3>
           <ul className="space-y-2 list-disc list-inside ml-4">
             <li className="text-gray-700">Cédula de identidad vigente</li>
@@ -90,7 +90,7 @@ export default function Requirements() {
                 mb-6
                 "
             >
-            3. Requisitos del familiar que está fuera de Chile (el "solicitante")
+            3. Requisitos del familiar que está fuera de Chile (el &quot;solicitante&quot;)
           </h3>
           <ul className="space-y-2 list-disc list-inside ml-4">
             <li className="text-gray-700">Pasaporte vigente</li>

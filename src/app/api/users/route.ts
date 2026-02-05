@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar si el email ya existe
-    const existingUser = await prisma.User.findUnique({
+    const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Crear el usuario
-    const user = await prisma.User.create({
+    const user = await prisma.user.create({
       data: {
         name: nombre,
         paternal_surname: apellidoPaterno,

@@ -96,6 +96,50 @@
       transform: translateX(100%) translateY(100%) rotate(45deg);
     }
   }
+
+  /* Animaciones para las líneas de los abogados */
+  @keyframes slideDown1 {
+    0% {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(400px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes slideDown2 {
+    0% {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(400px);
+      opacity: 0;
+    }
+  }
+
+  .animate-slide-down-1 {
+    animation: slideDown1 1.5s ease-in-out infinite;
+  }
+
+  .animate-slide-down-2 {
+    animation: slideDown2 1.5s ease-in-out infinite;
+    animation-delay: 0.3s;
+  }
 }
 
 .lawyer-hover-shadow {

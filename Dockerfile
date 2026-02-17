@@ -9,7 +9,7 @@ RUN apk add --no-cache libc6-compat openssl
 COPY package.json package-lock.json* ./
 
 # Install dependencies
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Copy prisma schema
 COPY prisma ./prisma

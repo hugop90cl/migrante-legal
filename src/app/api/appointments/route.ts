@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createOdooSaleOrder, createMercadoPagoPreference } from '../users/route';
 import prisma from '@/lib/prisma';
+import { sendAppointmentEmailToLawyer } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -83,6 +84,23 @@ export async function POST(request: NextRequest) {
         status: 'pending', // Se actualizará a 'paid' después del pago
       },
     });
+
+    try 
+    {
+      await sendAppointmentEmailToLawyer(
+        process.env.ADMIN_EMAIL!,
+        customerName,
+        appointmentDate,
+        appointmentTime,
+        email
+      );
+      console.log('Email enviado correctamente');
+    }catch(emailError)
+    {
+      const errorMsg = emailError instanceof Error ? emailError.message : String(emailError);
+      // No fallamos si el email no se envía, la cita se creó exitosamente
+      console.error('Error al enviar email:', errorMsg);
+    }
 
     console.log('💾 Cita guardada en BD:', appointment.id);
 

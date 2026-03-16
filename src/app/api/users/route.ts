@@ -7,12 +7,60 @@ const ODOO_UID = 2; // Usuario con API key válida
 const ODOO_API_KEY = 'A4ZGjdS0cjSX9N';
 const PRODUCT_SERVICE_ID = 18; // ID del servicio "Agendamiento de Cita"
 
-// Credenciales de Mercado Pago (modo TEST)
-const MERCADO_PAGO_ACCESS_TOKEN = 'TEST-PLACEHOLDER'; // Reemplazar con access token real
+// Credenciales de Mercado Pago desde variables de entorno
+const MERCADO_PAGO_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN || '';
 const MERCADO_PAGO_API_URL = 'https://api.mercadopago.com/checkout/preferences';
 
 // Función para crear partner en Odoo
-async function createOdooPartner(
+// Función para buscar un partner por email
+export async function findOdooPartnerByEmail(email: string): Promise<number | null> {
+  const odooPayload = {
+    jsonrpc: "2.0",
+    method: "call",
+    params: {
+      service: "object",
+      method: "execute_kw",
+      args: [
+        ODOO_DB,
+        ODOO_UID,
+        ODOO_API_KEY,
+        "res.partner",
+        "search",
+        [[["email", "=", email]]]
+      ]
+    },
+    id: 1
+  };
+
+  console.log('🔍 Buscando partner por email:', email);
+
+  const odooResponse = await fetch(ODOO_URL, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(odooPayload),
+  });
+
+  const odooData = await odooResponse.json();
+  console.log('Respuesta Odoo (Search Partner):', odooData);
+
+  if (odooData.error) {
+    throw new Error(`Error al buscar partner en Odoo: ${JSON.stringify(odooData.error)}`);
+  }
+
+  const partnerIds = odooData.result;
+  if (partnerIds && partnerIds.length > 0) {
+    console.log('✅ Partner encontrado con ID:', partnerIds[0]);
+    return partnerIds[0];
+  }
+
+  console.log('❌ Partner no encontrado para email:', email);
+  return null;
+}
+
+// Función para crear un partner en Odoo (exportada)
+export async function createOdooPartner(
   nombre: string,
   apellidoPaterno: string,
   apellidoMaterno: string,
@@ -187,48 +235,60 @@ export async function createMercadoPagoPreference(
   sale_order_id: number,
   amount: number,
   email: string,
-  customerName: string
+  customerName: string,
+  documentNumber?: string,
+  documentType?: string,
+  phone?: string,
+  address?: string
 ) {
   // Si no está configurado el access token, retornar null
-  if (MERCADO_PAGO_ACCESS_TOKEN === 'TEST-PLACEHOLDER') {
-    console.warn('⚠️ Mercado Pago no está configurado. Usando TEST-PLACEHOLDER.');
+  if (!MERCADO_PAGO_ACCESS_TOKEN) {
+    console.warn('⚠️ Mercado Pago no está configurado. Variable MERCADO_PAGO_ACCESS_TOKEN no encontrada.');
     return null;
   }
 
-  const payload = {
-    items: [
-      {
-        id: `order-${sale_order_id}`,
-        title: 'Agendamiento de Cita - Servicios Legales',
-        quantity: 1,
-        unit_price: amount,
-        currency_id: 'CLP'
-      }
-    ],
-    payer: {
-      email: email,
-      name: customerName
-    },
-    external_reference: `sale_order_${sale_order_id}`,
-    back_urls: {
-      success: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/payment-success`,
-      failure: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/payment-error`,
-      pending: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/payment-pending`
-    },
-    notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/webhook/mercadopago`,
-    auto_return: 'approved'
-  };
-
-  console.log('📤 Enviando preferencia a Mercado Pago:', JSON.stringify(payload, null, 2));
+  console.log('✅ Token de MP cargado correctamente - primeros 20 caracteres:', MERCADO_PAGO_ACCESS_TOKEN.substring(0, 20) + '...');
 
   try {
+    const preferenceRequest = {
+      items: [
+        {
+          id: `order-${sale_order_id}`,
+          title: 'Agendamiento de Cita - Servicios Legales',
+          quantity: 1,
+          unit_price: amount,
+          currency_id: 'CLP'
+        }
+      ],
+      payer: {
+        email: email,
+        name: customerName,
+        ...(documentNumber && documentType ? {
+          identification: {
+            type: documentType === 'RUT' ? 'RUT' : 'DNI',
+            number: documentNumber.replace(/\./g, '').replace(/-/g, '')
+          }
+        } : {}),
+        ...(phone ? { phone: { number: phone } } : {}),
+        ...(address ? { address: { street_name: address } } : {})
+      },
+      external_reference: `sale_order_${sale_order_id}`,
+      back_urls: {
+        success: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/payment-success`,
+        failure: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/payment-error`,
+        pending: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/payment-pending`
+      }
+    };
+
+    console.log('📤 Enviando preferencia a Mercado Pago:', JSON.stringify(preferenceRequest, null, 2));
+
     const response = await fetch(MERCADO_PAGO_API_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${MERCADO_PAGO_ACCESS_TOKEN}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(preferenceRequest)
     });
 
     const data = await response.json();
@@ -277,10 +337,19 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
-      return NextResponse.json({ error: 'Este email ya está registrado' }, { status: 409 });
+      // Si ya existe, retornar el user_id existente
+      console.log('ℹ️ Usuario ya existe con email:', email, 'ID:', existingUser.id);
+      return NextResponse.json(
+        {
+          message: 'Usuario ya existe',
+          user_id: existingUser.id,
+          user: existingUser,
+        },
+        { status: 200 }
+      );
     }
 
-    // Crear el usuario en BD
+    // Crear el usuario EN PRISMA SOLAMENTE (el partner en Odoo se crea en generate-payment)
     const user = await prisma.user.create({
       data: {
         name: nombre,
@@ -295,34 +364,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Crear partner en Odoo
-    let partner_id: number;
-    try {
-      partner_id = await createOdooPartner(
-        nombre,
-        apellidoPaterno,
-        apellidoMaterno,
-        email,
-        telefono,
-        documentNumber,
-        documentType,
-        direction
-      );
-    } catch (odooError) {
-      const errorMsg = odooError instanceof Error ? odooError.message : String(odooError);
-      console.error('Error al crear partner en Odoo:', errorMsg);
-      return NextResponse.json(
-        { error: `Error al crear cliente en Odoo: ${errorMsg}` },
-        { status: 500 }
-      );
-    }
+    console.log('✅ Usuario creado en BD:', user.id);
 
     return NextResponse.json(
       {
         message: 'Cliente registrado exitosamente',
         user_id: user.id,
         user,
-        partner_id
       },
       { status: 201 }
     );

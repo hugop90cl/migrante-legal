@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Credenciales de Mercado Pago (modo TEST)
-// Cuando tengas las credenciales reales, reemplaza estos valores
-const MERCADO_PAGO_ACCESS_TOKEN = 'TEST-PLACEHOLDER'; // Reemplazar con access token real
+// Credenciales de Mercado Pago desde variables de entorno
+const MERCADO_PAGO_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN || '';
 const MERCADO_PAGO_API_URL = 'https://api.mercadopago.com/checkout/preferences';
 
 // Función para crear preferencia de pago en Mercado Pago
@@ -10,7 +9,11 @@ async function createMercadoPagoPreference(
   sale_order_id: number,
   amount: number,
   email: string,
-  customerName: string
+  customerName: string,
+  documentNumber?: string,
+  documentType?: string,
+  phone?: string,
+  address?: string
 ) {
   const payload = {
     items: [
@@ -24,16 +27,22 @@ async function createMercadoPagoPreference(
     ],
     payer: {
       email: email,
-      name: customerName
+      name: customerName,
+      ...(documentNumber && documentType ? {
+        identification: {
+          type: documentType === 'RUT' ? 'RUT' : 'DNI',
+          number: documentNumber.replace(/\./g, '').replace(/-/g, '')
+        }
+      } : {}),
+      ...(phone ? { phone: { number: phone } } : {}),
+      ...(address ? { address: { street_name: address } } : {})
     },
     external_reference: `sale_order_${sale_order_id}`,
     back_urls: {
       success: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/pago/exito`,
       failure: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/pago/error`,
       pending: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/pago/pendiente`
-    },
-    notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/webhook/mercadopago`,
-    auto_return: 'approved'
+    }
   };
 
   console.log('📤 Enviando preferencia a Mercado Pago:', JSON.stringify(payload, null, 2));
@@ -87,11 +96,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Validar que el access token esté configurado
-    if (MERCADO_PAGO_ACCESS_TOKEN === 'TEST-PLACEHOLDER') {
+    if (!MERCADO_PAGO_ACCESS_TOKEN || MERCADO_PAGO_ACCESS_TOKEN === '') {
       return NextResponse.json(
         { 
-          error: 'Mercado Pago no está configurado. Por favor, agrega el ACCESS_TOKEN en las variables de entorno.',
-          warning: 'Está en modo TEST. Reemplaza "TEST-PLACEHOLDER" con tu access token real en src/app/api/payment/route.ts'
+          error: 'Mercado Pago no está configurado. Por favor, agrega MERCADO_PAGO_ACCESS_TOKEN en las variables de entorno.',
+          missingEnv: 'MERCADO_PAGO_ACCESS_TOKEN'
         },
         { status: 500 }
       );

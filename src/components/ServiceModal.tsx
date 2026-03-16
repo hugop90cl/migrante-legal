@@ -123,32 +123,9 @@ export default function ServiceModal({ service, onClose }: Props) {
 
   const handleAppointmentConfirm = async (appointmentData: AppointmentData) => {
     try {
-      const response = await fetch('/api/appointments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          partnerId,
-          lawyerId: appointmentData.lawyerId,
-          lawyerName: appointmentData.lawyerName,
-          appointmentDate: appointmentData.date.toISOString().split('T')[0],
-          appointmentTime: appointmentData.time,
-          email: userData.email,
-          customerName: userData.name,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al agendar la cita');
-      }
-
-      // 💾 Guardar datos de la cita en localStorage ANTES de redirigir a pago
+      // 💾 Guardar datos temporales de la cita en localStorage (aún NO se ha pagado)
       const appointmentInfo = {
-        appointmentId: data.appointmentId,
+        userId,
         partnerId,
         lawyerId: appointmentData.lawyerId,
         lawyerName: appointmentData.lawyerName,
@@ -156,54 +133,57 @@ export default function ServiceModal({ service, onClose }: Props) {
         appointmentTime: appointmentData.time,
         customerEmail: userData.email,
         customerName: userData.name,
-        saleOrderId: data.sale_order_id,
-        preferenceId: data.preference_id,
         savedAt: new Date().toISOString(),
       };
+      localStorage.setItem('pendingPaymentData', JSON.stringify(appointmentInfo));
+      console.log('💾 Datos temporales guardados en localStorage:', appointmentInfo);
 
-      // Guardar en localStorage
-      localStorage.setItem('pendingAppointment', JSON.stringify(appointmentInfo));
-      console.log('💾 Datos de cita guardados en localStorage:', appointmentInfo);
+      // Generar link de pago en Mercado Pago
+      const response = await fetch('/api/generate-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nombre: formData.name,
+          apellidoPaterno: formData.paternal_surname,
+          apellidoMaterno: formData.maternal_surname,
+          email: formData.email,
+          telefono: formData.phone,
+          documentNumber: formData.document_number,
+          documentType: formData.document_type,
+          direction: formData.direction,
+          amount: 25000,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al generar link de pago');
+      }
 
       const paymentLink = data.payment_link;
+      const sale_order_id = data.sale_order_id;
+      const preference_id = data.preference_id;
+      const newPartnerId = data.partnerId;
 
-      Swal.fire({
-        title: '¡Cita Agendada!',
-        text: 'Tu cita ha sido agendada exitosamente. Serás redirigido a Mercado Pago para realizar el pago.',
-        icon: 'success',
-        confirmButtonText: 'Ir a Pagar',
-        confirmButtonColor: '#0A4D8C',
-        background: '#f9fafb',
-        customClass: {
-          popup: 'rounded-2xl shadow-2xl',
-          title: 'text-2xl font-bold text-gray-900',
-          htmlContainer: 'text-gray-600',
-        },
-        didClose: () => {
-          setFormData({
-            name: '',
-            email: '',
-            phone: '',
-            direction: '',
-            paternal_surname: '',
-            maternal_surname: '',
-            document_number: '',
-            document_type: '',
-          });
-          setUserId(null);
-          setPartnerId(null);
-          setUserData({ email: '', name: '' });
-          setShowCalendarModal(false);
-          onClose();
+      // Guardar IDs de la venta y partner para después del pago
+      const appointmentWithPayment = {
+        ...appointmentInfo,
+        partnerId: newPartnerId,
+        sale_order_id,
+        preference_id,
+      };
+      localStorage.setItem('pendingPaymentData', JSON.stringify(appointmentWithPayment));
+      console.log('📤 Redirigiendo a Mercado Pago:', paymentLink);
 
-          // Redirigir a Mercado Pago si hay payment_link
-          if (paymentLink) {
-            window.location.href = paymentLink;
-          }
-        },
-      });
+      // Redirigir directo a Mercado Pago
+      if (paymentLink) {
+        window.location.href = paymentLink;
+      }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al agendar la cita';
+      const errorMessage = error instanceof Error ? error.message : 'Error al generar link de pago';
 
       Swal.fire({
         title: 'Error',

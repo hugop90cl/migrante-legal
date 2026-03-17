@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, CheckCircle, Mail, Phone, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
+import CalendarModal, { AppointmentData } from './CalendarModal';
 
 interface Service {
   id: number;
@@ -32,6 +33,13 @@ export default function ServiceModal({ service, onClose }: Props) {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [partnerId, setPartnerId] = useState<number | null>(null);
+  const [userData, setUserData] = useState({
+    email: '',
+    name: '',
+  });
 
   {
     /* focus expand */
@@ -82,36 +90,20 @@ export default function ServiceModal({ service, onClose }: Props) {
         throw new Error(data.error || 'Error al guardar los datos');
       }
 
-      Swal.fire({
-        title: '¡Éxito!',
-        text: 'Tu información ha sido guardada. Nos contactaremos contigo en breve.',
-        icon: 'success',
-        confirmButtonText: 'Cerrar',
-        confirmButtonColor: '#0A4D8C',
-        background: '#f9fafb',
-        customClass: {
-          popup: 'rounded-2xl shadow-2xl',
-          title: 'text-2xl font-bold text-gray-900',
-          htmlContainer: 'text-gray-600',
-        },
-        didClose: () => {
-          setFormData({
-            name: '',
-            email: '',
-            phone: '',
-            direction: '',
-            paternal_surname: '',
-            maternal_surname: '',
-            document_number: '',
-            document_type: '',
-          });
-          setIsSubmitting(false);
-          onClose();
-        },
+      // Guardar userId, partnerId y datos del usuario
+      setUserId(data.user_id);
+      setPartnerId(data.partner_id);
+      setUserData({
+        email: formData.email,
+        name: `${formData.name} ${formData.paternal_surname} ${formData.maternal_surname}`,
       });
+
+      // Mostrar CalendarModal
+      setShowCalendarModal(true);
+      setIsSubmitting(false);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al guardar los datos';
-      
+
       Swal.fire({
         title: 'Error',
         text: errorMessage,
@@ -129,8 +121,98 @@ export default function ServiceModal({ service, onClose }: Props) {
     }
   };
 
+  const handleAppointmentConfirm = async (appointmentData: AppointmentData) => {
+    try {
+      // 💾 Guardar datos temporales de la cita en localStorage (aún NO se ha pagado)
+      const appointmentInfo = {
+        userId,
+        partnerId,
+        lawyerId: appointmentData.lawyerId,
+        lawyerName: appointmentData.lawyerName,
+        appointmentDate: appointmentData.date.toISOString().split('T')[0],
+        appointmentTime: appointmentData.time,
+        customerEmail: userData.email,
+        customerName: userData.name,
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem('pendingPaymentData', JSON.stringify(appointmentInfo));
+      console.log('💾 Datos temporales guardados en localStorage:', appointmentInfo);
+
+      /* MERCADO PAGO INTEGRATION [COMMENTED OUT]
+      // Generar link de pago en Mercado Pago
+      const response = await fetch('/api/generate-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nombre: formData.name,
+          apellidoPaterno: formData.paternal_surname,
+          apellidoMaterno: formData.maternal_surname,
+          email: formData.email,
+          telefono: formData.phone,
+          documentNumber: formData.document_number,
+          documentType: formData.document_type,
+          direction: formData.direction,
+          amount: 25000,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al generar link de pago');
+      }
+
+      const paymentLink = data.payment_link;
+      const sale_order_id = data.sale_order_id;
+      const preference_id = data.preference_id;
+      const newPartnerId = data.partnerId;
+
+      // Guardar IDs de la venta y partner para después del pago
+      const appointmentWithPayment = {
+        ...appointmentInfo,
+        partnerId: newPartnerId,
+        sale_order_id,
+        preference_id,
+      };
+      localStorage.setItem('pendingPaymentData', JSON.stringify(appointmentWithPayment));
+      console.log('📤 Redirigiendo a Mercado Pago:', paymentLink);
+
+      // Redirigir directo a Mercado Pago
+      if (paymentLink) {
+        window.location.href = paymentLink;
+      }
+      */
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al generar link de pago';
+
+      Swal.fire({
+        title: 'Error',
+        text: errorMessage,
+        icon: 'error',
+        confirmButtonText: 'Cerrar',
+        confirmButtonColor: '#dc2626',
+        background: '#f9fafb',
+        customClass: {
+          popup: 'rounded-2xl shadow-2xl',
+          title: 'text-2xl font-bold text-gray-900',
+          htmlContainer: 'text-gray-600',
+        },
+      });
+    }
+  };
+
   return (
     <>
+      <CalendarModal
+        isOpen={showCalendarModal}
+        onClose={() => setShowCalendarModal(false)}
+        onConfirm={handleAppointmentConfirm}
+        userEmail={userData.email}
+        userName={userData.name}
+      />
+
       {/* Overlay oscuro - SIN animación para evitar parpadeos */}
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={onClose}></div>
 
@@ -155,6 +237,10 @@ export default function ServiceModal({ service, onClose }: Props) {
 
           {/* Contenido */}
           <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
+            <p className="text-sm text-gray-600 mt-1">
+              Este servicio tiene un costo de $25.000 CLP, el cual, en caso de seguir adelante, se
+              descontará del total final.
+            </p>
             {/* Servicio seleccionado - Mejorado */}
             <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 shadow-sm">
               <div className="flex items-start gap-3">
@@ -220,7 +306,8 @@ export default function ServiceModal({ service, onClose }: Props) {
                     htmlFor="paternal_surname"
                     animate={{
                       y: focusedField === 'paternal_surname' || formData.paternal_surname ? -28 : 0,
-                      scale: focusedField === 'paternal_surname' || formData.paternal_surname ? 0.85 : 1,
+                      scale:
+                        focusedField === 'paternal_surname' || formData.paternal_surname ? 0.85 : 1,
                     }}
                     transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                     className="absolute left-4 top-4 text-sm font-semibold text-gray-700 bg-white px-1 cursor-text pointer-events-none"
@@ -250,7 +337,8 @@ export default function ServiceModal({ service, onClose }: Props) {
                     htmlFor="maternal_surname"
                     animate={{
                       y: focusedField === 'maternal_surname' || formData.maternal_surname ? -28 : 0,
-                      scale: focusedField === 'maternal_surname' || formData.maternal_surname ? 0.85 : 1,
+                      scale:
+                        focusedField === 'maternal_surname' || formData.maternal_surname ? 0.85 : 1,
                     }}
                     transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                     className="absolute left-4 top-4 text-sm font-semibold text-gray-700 bg-white px-1 cursor-text pointer-events-none"
@@ -366,7 +454,8 @@ export default function ServiceModal({ service, onClose }: Props) {
                   htmlFor="document_number"
                   animate={{
                     y: focusedField === 'document_number' || formData.document_number ? -28 : 0,
-                    scale: focusedField === 'document_number' || formData.document_number ? 0.85 : 1,
+                    scale:
+                      focusedField === 'document_number' || formData.document_number ? 0.85 : 1,
                   }}
                   transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                   className="absolute left-4 top-4 text-sm font-semibold text-gray-700 bg-white px-1 cursor-text pointer-events-none"

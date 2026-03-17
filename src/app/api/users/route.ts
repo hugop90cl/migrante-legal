@@ -28,10 +28,19 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
-      return NextResponse.json({ error: 'Este email ya está registrado' }, { status: 409 });
+      // Si ya existe, retornar el user_id existente
+      console.log('ℹ️ Usuario ya existe con email:', email, 'ID:', existingUser.id);
+      return NextResponse.json(
+        {
+          message: 'Usuario ya existe',
+          user_id: existingUser.id,
+          user: existingUser,
+        },
+        { status: 200 }
+      );
     }
 
-    // Crear el usuario
+    // Crear el usuario EN PRISMA SOLAMENTE
     const user = await prisma.user.create({
       data: {
         name: nombre,
@@ -46,16 +55,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    console.log('✅ Usuario creado en BD:', user.id);
+
     return NextResponse.json(
       {
-        message: 'Usuario guardado exitosamente',
+        message: 'Cliente registrado exitosamente',
+        user_id: user.id,
         user,
       },
       { status: 201 }
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error al guardar usuario:', errorMessage);
+    console.error('Error al guardar cliente:', errorMessage);
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

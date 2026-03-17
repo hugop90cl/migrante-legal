@@ -32,40 +32,41 @@ export async function POST(request: NextRequest) {
     });
 
     // Crear sale order en Odoo
-    let sale_order_id: number | null = null;
-    try {
-      sale_order_id = await createOdooSaleOrder(partnerId, 25000);
-      console.log('✅ Sale order creada:', sale_order_id);
-    } catch (odooError) {
-      const errorMsg = odooError instanceof Error ? odooError.message : String(odooError);
-      console.error('❌ Error al crear sale order:', errorMsg);
-      return NextResponse.json(
-        { error: `Error al crear orden de venta: ${errorMsg}` },
-        { status: 500 }
-      );
-    }
+    // let sale_order_id: number | null = null;
+    // try {
+    //   sale_order_id = await createOdooSaleOrder(partnerId, 25000);
+    //   console.log('✅ Sale order creada:', sale_order_id);
+    // } catch (odooError) {
+    //   const errorMsg = odooError instanceof Error ? odooError.message : String(odooError);
+    //   console.error('❌ Error al crear sale order:', errorMsg);
+    //   return NextResponse.json(
+    //     { error: `Error al crear orden de venta: ${errorMsg}` },
+    //     { status: 500 }
+    //   );
+    // }
 
     // Generar link de pago en Mercado Pago
     let payment_link: string | null = null;
     let preference_id: string | null = null;
-    if (sale_order_id) {
-      try {
-        const mpResult = await createMercadoPagoPreference(
-          sale_order_id,
-          25000,
-          email,
-          customerName
-        );
-        if (mpResult) {
-          payment_link = mpResult.sandbox_init_point || mpResult.init_point;
-          preference_id = mpResult.preference_id;
-        }
-      } catch (mpError) {
-        const errorMsg = mpError instanceof Error ? mpError.message : String(mpError);
-        console.error('⚠️ Error al generar link de pago:', errorMsg);
-        // No fallamos si Mercado Pago no funciona, la orden se creó exitosamente
-      }
-    }
+    // if (sale_order_id) {
+    //   try {
+    //     const mpResult = await createMercadoPagoPreference(
+    //       sale_order_id,
+    //       25000,
+    //       email,
+    //       customerName
+    //     );
+    //     if (mpResult) {
+    //       payment_link = mpResult.sandbox_init_point || mpResult.init_point;
+    //       preference_id = mpResult.preference_id;
+    //     }
+    //   } catch (mpError) {
+    //     const errorMsg = mpError instanceof Error ? mpError.message : String(mpError);
+    //     console.error('⚠️ Error al generar link de pago:', errorMsg);
+    //     // No fallamos si Mercado Pago no funciona, la orden se creó exitosamente
+    //   }
+    // }
+    let sale_order_id: number | null = null;
 
     // Guardar la cita en la base de datos
     const appointment = await prisma.appointment.create({

@@ -2,8 +2,6 @@
 
 import React from 'react';
 import { ArrowRight, Banknote, Home, Users, FileText } from 'lucide-react';
-import { useState } from 'react';
-import ServiceModal from './ServiceModal';
 const services = [
   {
     id: 1,
@@ -44,8 +42,6 @@ const services = [
 ];
 
 export default function Services() {
-  const [selectedService, setSelectedService] = useState<any | null>(null);
-
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -64,9 +60,8 @@ export default function Services() {
             return (
               <div
                 key={service.id}
-                onClick={() => setSelectedService(service)}
                 style={{ animationDelay: `${index * 100}ms` }}
-                className="flex flex-col p-8 rounded-xl bg-gradient-to-br from-white to-gray-50 border border-gray-100 hover:border-gray-200 transition-all duration-300 hover:shadow-xl hover:scale-105 relative cursor-pointer group animate-fade-in-up"
+                className="flex flex-col p-8 rounded-xl bg-gradient-to-br from-white to-gray-50 border border-gray-100 hover:border-gray-200 transition-all duration-300 hover:shadow-xl hover:scale-105 relative group animate-fade-in-up"
               >
                 {/* Icono con gradiente */}
                 <div
@@ -81,21 +76,21 @@ export default function Services() {
                 {/* Descripción */}
                 <p className="text-gray-600 mb-6 leading-relaxed text-sm">{service.description}</p>
 
-                {/* Botón mejorado */}
-                <div
+                {/* Link para agendar */}
+                <a
+                  href="https://agenda.migrantelegal.cl"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={`flex items-center justify-center mt-auto w-full px-6 py-3 bg-gradient-to-r ${service.color} text-white font-semibold rounded-lg transition-all duration-300 group-hover:shadow-lg group-hover:scale-105`}
                 >
                   Agendar reunión
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </div>
+                </a>
               </div>
             );
           })}
         </div>
       </div>
-      {selectedService && (
-        <ServiceModal service={selectedService} onClose={() => setSelectedService(null)} />
-      )}
     </section>
   );
 }

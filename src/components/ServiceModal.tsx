@@ -138,6 +138,7 @@ export default function ServiceModal({ service, onClose }: Props) {
       localStorage.setItem('pendingPaymentData', JSON.stringify(appointmentInfo));
       console.log('💾 Datos temporales guardados en localStorage:', appointmentInfo);
 
+      /* MERCADO PAGO INTEGRATION [COMMENTED OUT]
       // Generar link de pago en Mercado Pago
       const response = await fetch('/api/generate-payment', {
         method: 'POST',
@@ -182,6 +183,7 @@ export default function ServiceModal({ service, onClose }: Props) {
       if (paymentLink) {
         window.location.href = paymentLink;
       }
+      */
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al generar link de pago';
 

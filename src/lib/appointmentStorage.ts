@@ -63,10 +63,12 @@ export const hasPendingAppointment = (): boolean => {
 
 /**
  * Marcar una cita como pagada (actualizar estado en BD)
- * Se llama después de que Mercado Pago confirme el pago
+ * [MERCADO PAGO INTEGRATION COMMENTED OUT]
+ * Se llama después de que Mercado Pago confirma el pago
  */
 export const markAppointmentAsPaid = async (appointmentId: string): Promise<boolean> => {
   try {
+    /* MERCADO PAGO [COMMENTED OUT]
     const response = await fetch('/api/appointments/confirm-payment', {
       method: 'POST',
       headers: {
@@ -85,6 +87,8 @@ export const markAppointmentAsPaid = async (appointmentId: string): Promise<bool
 
     console.log('✅ Cita marcada como pagada:', appointmentId);
     clearAppointmentFromStorage();
+    */
+    
     return true;
   } catch (error) {
     console.error('❌ Error al marcar cita como pagada:', error);

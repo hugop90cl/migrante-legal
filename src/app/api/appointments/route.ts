@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createOdooSaleOrder, createMercadoPagoPreference } from '../users/route';
+// import { createOdooSaleOrder, createMercadoPagoPreference } from '../users/route';
 import prisma from '@/lib/prisma';
 import { sendAppointmentEmailToLawyer } from '@/lib/email';
 

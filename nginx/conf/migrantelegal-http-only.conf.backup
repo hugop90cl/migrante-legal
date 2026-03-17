@@ -1,0 +1,33 @@
+# ============================================
+# Configuración inicial HTTP para Migrante Legal
+# Esta configuración permite a Certbot validar el dominio
+# ============================================
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name migrantelegal.cl www.migrantelegal.cl;
+
+    # Location para validación de Let's Encrypt
+    location /.well-known/acme-challenge/ {
+        root /var/www/html;
+    }
+
+    # Redireccionar todo el tráfico HTTP a la aplicación por ahora
+    location / {
+        proxy_pass http://migrantelegal-app:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        
+        # Timeouts para Next.js
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+}

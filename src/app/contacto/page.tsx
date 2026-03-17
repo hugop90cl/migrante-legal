@@ -5,7 +5,7 @@ export default function Contacto() {
     return (
         <>  
             <Hero />
-        <ContactContent />;
+            <ContactContent />;
         </>
     ) 
 }

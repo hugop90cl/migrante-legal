@@ -21,6 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        <link rel="icon" href="data:," />
+      </head>
       <body className={inter.className}>
         <Navbar/>
         {children}

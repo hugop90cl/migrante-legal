@@ -2,26 +2,30 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# Install dependencies
+# Instala dependencias del sistema
 RUN apk add --no-cache libc6-compat openssl
 
-# Copy package files
+# Copia los archivos de dependencias
 COPY package.json package-lock.json* ./
 
-# Install dependencies
+# Instala dependencias
 RUN npm ci
 
-# Copy prisma schema
-COPY prisma ./prisma
+# Copia el código fuente y todo lo necesario para el build
+COPY . .
 
-# Generate Prisma Client
+# Genera Prisma Client
 RUN npx prisma generate
 
-# Expose port
+# Build de la app Next.js
+RUN npm run build
+
+# Expone el puerto
 EXPOSE 3001
 
 ENV PORT 3001
 ENV HOSTNAME "0.0.0.0"
+ENV NODE_ENV production
 
-# Start Next.js in development mode
-CMD ["npm", "run", "dev"]
+# Comando de inicio SOLO para producción
+CMD ["npm", "start"]

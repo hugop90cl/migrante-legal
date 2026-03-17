@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowRight, Banknote, Home, Users, FileText } from 'lucide-react';
+import RedirectModal from './RedirectModal';
 const services = [
   {
     id: 1,
@@ -42,6 +43,14 @@ const services = [
 ];
 
 export default function Services() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState('');
+
+  const handleOpenModal = (serviceName: string) => {
+    setSelectedService(serviceName);
+    setIsModalOpen(true);
+  };
+
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,20 +86,25 @@ export default function Services() {
                 <p className="text-gray-600 mb-6 leading-relaxed text-sm">{service.description}</p>
 
                 {/* Link para agendar */}
-                <a
-                  href="https://agenda.migrantelegal.cl"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => handleOpenModal(service.title)}
                   className={`flex items-center justify-center mt-auto w-full px-6 py-3 bg-gradient-to-r ${service.color} text-white font-semibold rounded-lg transition-all duration-300 group-hover:shadow-lg group-hover:scale-105`}
                 >
                   Agendar reunión
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </a>
+                </button>
               </div>
             );
           })}
         </div>
       </div>
+
+      {/* Modal de redirección */}
+      <RedirectModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        serviceTitle={selectedService}
+      />
     </section>
   );
 }

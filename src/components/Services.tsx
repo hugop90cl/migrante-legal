@@ -4,6 +4,8 @@ import React from 'react';
 import { ArrowRight, Banknote, Home, Users, FileText } from 'lucide-react';
 import { useState } from 'react';
 import ServiceModal from './ServiceModal';
+import { useRouter } from 'next/navigation';
+
 const services = [
   {
     id: 1,
@@ -82,20 +84,23 @@ export default function Services() {
                 <p className="text-gray-600 mb-6 leading-relaxed text-sm">{service.description}</p>
 
                 {/* Botón mejorado */}
-                <div
+                <a
+                  href="https://agenda.migrantelegal.cl"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={`flex items-center justify-center mt-auto w-full px-6 py-3 bg-gradient-to-r ${service.color} text-white font-semibold rounded-lg transition-all duration-300 group-hover:shadow-lg group-hover:scale-105`}
                 >
                   Agendar reunión
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </div>
+                </a>
               </div>
             );
           })}
         </div>
       </div>
-      {selectedService && (
+      {/*selectedService && (
         <ServiceModal service={selectedService} onClose={() => setSelectedService(null)} />
-      )}
+      )*/}
     </section>
   );
 }

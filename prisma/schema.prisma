@@ -25,3 +25,24 @@ model User {
 
   @@map("users")
 }
+
+// modelo para citas/reservas de abogados
+model Appointment {
+  id                String @id @default(cuid())
+  user_id           String? // ID del usuario que hace la cita (FK a tabla users)
+  partner_id        Int    // ID del partner en Odoo
+  lawyer_id         Int    // ID del abogado seleccionado
+  lawyer_name       String // Nombre del abogado
+  appointment_date  DateTime // Fecha de la cita
+  appointment_time  String // Hora (ej: "09:00")
+  customer_email    String // Email del cliente
+  customer_name     String // Nombre del cliente
+  status            String @default("pending") // pending, paid, completed, cancelled
+  sale_order_id     Int?   // ID de la orden de venta en Odoo
+  preference_id     String? // ID de preferencia en Mercado Pago
+  payment_link      String? // Link de pago
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  @@map("appointments")
+}
